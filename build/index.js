@@ -35,13 +35,17 @@ Utility_1.Utility.withAllStdIn((inputBuff) => {
             codeGenResponse.addFile(msgTsdFile);
             // service part
             const fileDescriptorModel = ProtoSvcTsdFormatter_1.ProtoSvcTsdFormatter.format(fileNameToDescriptor[fileName], exportMap, isGrpcJs);
+            const svcFileName = Utility_1.Utility.svcFilePathFromProtoWithoutExt(fileName);
+            const svtTsdFile = new plugin_pb_1.CodeGeneratorResponse.File();
+            svtTsdFile.setName(svcFileName + ".d.ts");
             if (fileDescriptorModel != null) {
-                const svcFileName = Utility_1.Utility.svcFilePathFromProtoWithoutExt(fileName);
-                const svtTsdFile = new plugin_pb_1.CodeGeneratorResponse.File();
-                svtTsdFile.setName(svcFileName + ".d.ts");
                 svtTsdFile.setContent(TplEngine_1.TplEngine.render("svc_tsd", fileDescriptorModel));
-                codeGenResponse.addFile(svtTsdFile);
             }
+            else {
+                // Create empty .d.ts for bazel
+                svtTsdFile.setContent("// No Services defined in " + msgFileName + ".proto");
+            }
+            codeGenResponse.addFile(svtTsdFile);
         });
         process.stdout.write(Buffer.from(codeGenResponse.serializeBinary()));
     }
